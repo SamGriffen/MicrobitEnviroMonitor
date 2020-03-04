@@ -1,0 +1,88 @@
+html {
+    font-family: 'Roboto', sans-serif;
+    display: block;
+    height: 100%;
+}
+
+h1 {
+   font-size: 3em; 
+   color: #262626;
+   display: block;
+   margin: 1em auto;
+   text-align: center;
+}   
+
+.tile {
+    width: 85%;
+    margin: 0 auto;
+    padding:1em;
+    text-align: center;
+    border-radius: 2em;
+    color: white;
+    height: 8em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2em;
+    margin-bottom: 2em;
+}
+
+.tile .icon-box {
+    display: inline-block;
+    width: 6em;
+    height: 100%;
+    padding: 1.2em;
+}
+
+.tile .text {
+    display: inline-block;
+    width: 70%;
+    font-weight: 800;
+    font-size: 4em;
+}
+
+.icon {
+    height: 100%;
+}
+
+#temperature {
+    background-color: #ED4C67;
+}
+
+#humidity {
+    background-color: #12CBC4;
+}
+
+#soil_humidity {
+    background-color: #C4E538;
+}
+
+/* First breakpoint */
+@media (min-width: 400px) and (max-width: 1200px){
+    .tile{
+        width: 20em;
+    }
+}
+
+@media (min-width: 1200px){
+    .tile {
+        display: inline-block;
+        width: 24em;
+        height: 18em;
+        margin-left: 1em;
+        margin-right: 1em;
+    }
+    .tile .icon-box {
+        height: 10em;
+    }
+
+    .wrapper {
+        display: block;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    h1 {
+        margin: 2em auto;
+    }
+}

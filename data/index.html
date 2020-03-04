@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Microbit Environmental Monitor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" type="text/css" href="styles.css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+  <script type="text/javascript" src="/main.js"></script>
+</head>
+<body>
+    <h1>Greenhouse</h1>
+    <div class="wrapper">
+        <div class="tile" id="temperature" title="Greenhouse Temperature">
+            <span class="icon-box">
+                <img src="/temp.svg" alt="Thermometer icon" class="icon">
+            </span>
+            <div class="text" id="temp-text">
+                <span>%TEMP%</span>&deg;C
+            </div>
+        </div>
+        <div class="tile" id="humidity" title="Greenhouse relative humidity">
+            <span class="icon-box">
+                <img src="/drop.svg" alt="Waterdrop icon" class="icon">
+            </span>
+            <div class="text" id="humidity-text">
+                <span>%HUMIDITY%</span>&percnt;
+            </div>
+        </div>
+        <div class="tile" id="soil_humidity" title="Greenhouse soil relative humidity">
+            <span class="icon-box">
+                <img src="/drop.svg" alt="Waterdrop icon" class="icon">
+            </span>
+            <div class="text" id="soil-text">
+                <span>%SOIL%</span>&percnt;
+            </div>
+        </div>
+    </div>
+</body>
+</html>
