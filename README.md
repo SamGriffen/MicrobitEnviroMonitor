@@ -1,6 +1,8 @@
 # MicrobitEnviroMonitor
  ESP based webserver for displaying data from weather:bit. This project will allow for the sparkfun weather:bit to send data to an ESP32, which will then display the data on a local webpage. The ESP32 must have a network to connect to, it does not create it's own local access point.
  
+ ![web interface](/img/screenshot.png)
+ 
  # Setup
  After cloning the repository, the project can be opened in PlatformIO. Web data is loaded into the SPIFFs storage on the ESP32, and the platformio config files are setup to allow for this. To install out of the box you must do the following:
  
