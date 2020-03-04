@@ -14,6 +14,10 @@
 
 #define DEBUG
 
+// Network credentials
+const char* ssid = "your_network_here";
+const char* password = "your_password_here";
+
 // Struct for storing current reading data
 struct Data{
   double temp;
@@ -41,9 +45,6 @@ void incoming();
 void processBuffer();
 
 /* NETWORK SETUP */
-// Network credentials
-const char* ssid = "Rosa";
-const char* password = "denbigh05";
 
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
@@ -96,7 +97,7 @@ void setup() {
     dtostrf(data.humidity, 3,1, humidity);
 
     char soil[6];
-    dtostrf(data.soil_moist, 3,1, soil);
+    dtostrf(data.soil_moist, 4,2, soil);
 
 
     sprintf(buf, "{temp:%s, humidity:%s, soil_moist:%s}", temp, humidity, soil);
