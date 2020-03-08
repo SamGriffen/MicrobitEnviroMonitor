@@ -14,15 +14,24 @@
 
 #define DEBUG
 
+// Define the point at which the soil is defined as "dry"
+// TODO: Make this editable via the frontend interface
+#define SOIL_DRY 100
+
+// Define pump output, and pump state flag
+#define PUMP_PIN
+
+bool pump_on = false; // Pump state. True = on, false = off
+
 // Network credentials
 const char* ssid = "your_network_here";
 const char* password = "your_password_here";
 
 // Struct for storing current reading data
 struct Data{
-  double temp;
-  double humidity;
-  double soil_moist;
+  double temp; // Temperature in degrees celsius
+  double humidity; // Relative humidity [%]
+  int soil_moist; // Soil moisture. A reading between 0 and 1024. This needs to be manually read and tuned, it doesn't really mean a whole lot
 } data;
 
 #ifdef DEBUG
@@ -31,7 +40,6 @@ void printData(Data dat){
   Serial.print("Temperature: ");Serial.println(dat.temp);
   Serial.print("Humidity: ");Serial.println(dat.humidity);
   Serial.print("Soil Moisture: ");Serial.println(dat.soil_moist);
-
 }
 #endif
 
@@ -58,6 +66,10 @@ void setup() {
   #endif
 
   Serial2.begin(9600); // Initialise Serial communication with the microbit
+
+  // Initialise the pump
+  pinMode(PUMP_PIN, OUTPUT);
+  digitalWrite(PUMP_PIN, pump_on);
 
   if(!SPIFFS.begin(true)){ // Attempt to initialise SPIFFS
     #ifdef DEBUG
@@ -110,11 +122,11 @@ void setup() {
   });
 
   // Serve SVG images
-  server.on("/drop.svg", HTTP_GET, [](AsyncWebServerRequest *request){
+  server.on("img/drop.svg", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(SPIFFS, "/drop.svg","image/svg+xml");
   });
 
-  server.on("/temp.svg", HTTP_GET, [](AsyncWebServerRequest *request){
+  server.on("img/temp.svg", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(SPIFFS, "/temp.svg","image/svg+xml");
   });
 
@@ -129,6 +141,12 @@ void setup() {
 void loop() {
   if(Serial2.available() > 0){ // Handle incoming Serial
     incoming();
+  }
+
+  // Control the pump
+  if(!pump_on && data.soil_moist <= SOIL_DRY){
+    pump_on = true;
+    digitalWrite(PUMP_PIN, pump_on);
   }
 }
 
@@ -201,7 +219,7 @@ void processBuffer(){
 
   if(tok == NULL)return; // Could not read soil moisture
 
-  data.soil_moist = atoi(tok)/1024.0; // Get the soil moisture
+  data.soil_moist = atoi(tok); // Read soil moisture content
 
   #ifdef DEBUG
   printData(data);
