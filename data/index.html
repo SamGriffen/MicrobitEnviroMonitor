@@ -12,30 +12,30 @@
     <div class="wrapper">
         <div class="tile" id="temperature" title="Greenhouse Temperature">
             <span class="icon-box">
-                <img src="img/temp.svg" alt="Thermometer icon" class="icon">
+                <img src="temp.svg" alt="Thermometer icon" class="icon">
             </span>
             <div class="text" id="temp-text">
-                <span>20</span>&deg;C
+                <span>%TEMP%</span>&deg;C
             </div>
         </div>
         <div class="tile" id="humidity" title="Greenhouse relative humidity">
             <span class="icon-box">
-                <img src="img/drop.svg" alt="Waterdrop icon" class="icon">
+                <img src="drop.svg" alt="Waterdrop icon" class="icon">
             </span>
             <div class="text" id="humidity-text">
-                <span>100</span>&percnt;
+                <span>%HUMIDITY%</span>&percnt;
             </div>
         </div>
         <div class="tile double" id="soil_humidity" title="Greenhouse soil relative humidity">
             <span class="icon-box">
-                <img src="img/plant_water.svg" alt="Waterdrop icon" class="icon">
+                <img src="plant.svg" alt="Waterdrop icon" class="icon">
             </span>
             <div class="text-container">
                 <span class="text top-row" id="soil-text">
-                    Soil Moisture: 864
+                    Soil Moisture: <span>%SOIL%</span>
                 </span>
-                <span class="text bottom-row" id="soil-text">
-                    Pump: ON
+                <span class="text bottom-row" id="pump-text">
+                    Pump: <span>%PUMP%</span>
                 </span>
             </div>
         </div>

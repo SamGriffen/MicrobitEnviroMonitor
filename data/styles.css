@@ -29,7 +29,6 @@ h1 {
     height: 8em;
     display: flex;
     align-items: center;
-    margin-top: 2em;
     margin-bottom: 2em;
 }
 
@@ -53,7 +52,7 @@ h1 {
 
 .text-container {
     font-size: 0.8em;
-    
+
 }
 
 .icon {
@@ -69,7 +68,7 @@ h1 {
 }
 
 #soil_humidity {
-    background-color: #C4E538;
+    background-color: #BEDD35;
 }
 
 /* First breakpoint

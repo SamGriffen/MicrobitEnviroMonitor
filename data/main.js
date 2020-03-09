@@ -15,6 +15,7 @@ function receive () {
     document.querySelector("#temp-text > span").innerHTML = data.temp;
     document.querySelector("#humidity-text > span").innerHTML = data.humidity;
     document.querySelector("#soil-text > span").innerHTML = data.soil_moist;
+    document.querySelector("#soil-text > span").innerHTML = data.pump_on ? "ON" : "OFF";
 
     setTimeout(update, 1000); // Update again in half a second
 }

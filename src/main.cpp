@@ -4,7 +4,7 @@
  * Data is received via serial, in the following format:
  * [temperature, in... centidegrees? Divide value by 100 to get degrees celsius], [humidity, divide by 1024 to get % relative humidity], [soil moisture. 0-1023, 0 being dry, 1023 being wet]
  * 
- * TODO: Make values autorefresh. This will need to be some really dodgy, fast JS
+ * TODO: Make SOIL_DRY adjustable without reprogramming. This poses a security risk, so will need to be secure and able to detect misuse (Such as leaving the pump on indefinitely)
  */
 
 #include <Arduino.h>
@@ -19,13 +19,16 @@
 #define SOIL_DRY 100
 
 // Define pump output, and pump state flag
-#define PUMP_PIN
-
+#define PUMP_PIN 5
 bool pump_on = false; // Pump state. True = on, false = off
 
+
+#define PUMP_BUTTON 18 // For attaching a pump activate button. When pressed, the pump will activate for roughly a minute.
+
+
 // Network credentials
-const char* ssid = "your_network_here";
-const char* password = "your_password_here";
+const char* ssid = "Rosa";
+const char* password = "denbigh05";
 
 // Struct for storing current reading data
 struct Data{
@@ -112,7 +115,7 @@ void setup() {
     dtostrf(data.soil_moist, 4,2, soil);
 
 
-    sprintf(buf, "{temp:%s, humidity:%s, soil_moist:%s}", temp, humidity, soil);
+    sprintf(buf, "{\"temp\":%s, \"humidity\":%s, \"soil_moist\":%s, \"pump_on\":%d}", temp, humidity, soil, pump_on);
     request->send(200, "application/json", buf);
   });
 
@@ -122,18 +125,24 @@ void setup() {
   });
 
   // Serve SVG images
-  server.on("img/drop.svg", HTTP_GET, [](AsyncWebServerRequest *request){
+  server.on("/drop.svg", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(SPIFFS, "/drop.svg","image/svg+xml");
   });
 
-  server.on("img/temp.svg", HTTP_GET, [](AsyncWebServerRequest *request){
+  server.on("/temp.svg", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(SPIFFS, "/temp.svg","image/svg+xml");
+  });
+  
+  server.on("/plant.svg", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, pump_on ? "/plant_water.svg" : "/plant.svg","image/svg+xml");
   });
 
   // Serve JavaScript file
   server.on("/main.js", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(SPIFFS, "/main.js","text/javascript");
   });
+
+  // Admin interface - Crudely password protected by ADMIN_PASS
 
   server.begin();
 }
@@ -157,6 +166,7 @@ String processor(const String& var){
   if(var == "TEMP")return String(data.temp, 1);
   if(var == "HUMIDITY")return String(data.humidity, 1);
   if(var == "SOIL")return String(data.soil_moist, 1);
+  if(var == "PUMP")return String(pump_on ? "ON" : "OFF");
   return String();
 }
 
