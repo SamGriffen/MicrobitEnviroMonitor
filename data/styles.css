@@ -59,6 +59,10 @@ h1 {
     height: 100%;
 }
 
+.hidden {
+    display: none;
+}
+
 #temperature {
     background-color: #ED4C67;
 }
@@ -67,8 +71,12 @@ h1 {
     background-color: #12CBC4;
 }
 
-#soil_humidity {
+#soil-humidity {
     background-color: #BEDD35;
+}
+
+#wind {
+    background-color: #52D9D4;
 }
 
 /* First breakpoint

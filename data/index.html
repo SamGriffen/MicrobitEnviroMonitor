@@ -26,19 +26,34 @@
                 <span>%HUMIDITY%</span>&percnt;
             </div>
         </div>
-        <div class="tile double" id="soil_humidity" title="Greenhouse soil relative humidity">
+        <div class="tile double" id="soil-humidity" title="Greenhouse soil relative humidity">
             <span class="icon-box">
-                <img src="plant.svg" alt="Waterdrop icon" class="icon">
+                <img src="plant.svg" alt="Plant with no water icon" class="icon hidden" id="pump-off">
+                <img src="plant_water.svg" alt="Plant being watered icon" class="icon hidden" id="pump-on">
             </span>
-            <div class="text-container">
-                <span class="text top-row" id="soil-text">
+            <div class="text-container"  id="soil-text">
+                <span class="text top-row">
                     Soil Moisture: <span>%SOIL%</span>
                 </span>
-                <span class="text bottom-row" id="pump-text">
+                <span class="text bottom-row">
                     Pump: <span>%PUMP%</span>
                 </span>
             </div>
         </div>
+        <div class="tile double" id="wind" title="Outdoor windspeed and direction">
+            <span class="icon-box">
+                <img src="wind.svg" alt="Waterdrop icon" class="icon">
+            </span>
+            <div class="text-container" id="wind-text">
+                <span class="text top-row">
+                    Wind Speed: <span>%WINDSPEED%</span>
+                </span>
+                <span class="text bottom-row">
+                    Wind Direction: <span>%WINDDIR%</span>
+                </span>
+            </div>
+        </div>
+        
     </div>
 </body>
 </html>

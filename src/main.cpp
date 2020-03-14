@@ -2,9 +2,10 @@
  * Code for Microbit based Environmental Monitoring station.
  * 
  * Data is received via serial, in the following format:
- * [temperature, in... centidegrees? Divide value by 100 to get degrees celsius], [humidity, divide by 1024 to get % relative humidity], [soil moisture. 0-1023, 0 being dry, 1023 being wet]
+ * [temperature, in... centidegrees? Divide value by 100 to get degrees celsius], [humidity, divide by 1024 to get % relative humidity], [soil moisture. 0-1023, 0 being dry, 1023 being wet], [wind speed in m/s], [wind direction string], [mm of rain]
  * 
  * TODO: Make SOIL_DRY adjustable without reprogramming. This poses a security risk, so will need to be secure and able to detect misuse (Such as leaving the pump on indefinitely)
+ * TODO: Handle rain gauge
  */
 
 #include <Arduino.h>
@@ -12,11 +13,11 @@
 #include <ESPAsyncWebServer.h>
 #include <SPIFFS.h>
 
-#define DEBUG
+// #define DEBUG
 
 // Define the point at which the soil is defined as "dry"
 // TODO: Make this editable via the frontend interface
-#define SOIL_DRY 100
+#define SOIL_DRY 600
 
 // Define pump output, and pump state flag
 #define PUMP_PIN 5
@@ -35,6 +36,9 @@ struct Data{
   double temp; // Temperature in degrees celsius
   double humidity; // Relative humidity [%]
   int soil_moist; // Soil moisture. A reading between 0 and 1024. This needs to be manually read and tuned, it doesn't really mean a whole lot
+  double wind_speed; // Wind speed in meters per second
+  char wind_dir[3];  // Wind direction, string containing "N", "NE", "E", "SE", "S" "SW", "W", or "NW"
+  double rain;  // mm of rainfall since last reading was sent
 } data;
 
 #ifdef DEBUG
@@ -43,6 +47,9 @@ void printData(Data dat){
   Serial.print("Temperature: ");Serial.println(dat.temp);
   Serial.print("Humidity: ");Serial.println(dat.humidity);
   Serial.print("Soil Moisture: ");Serial.println(dat.soil_moist);
+  Serial.print("Wind Speed ");Serial.println(dat.wind_speed);
+  Serial.print("Wind Direction: ");Serial.println(dat.wind_dir);
+  Serial.print("Last Hour of Rain: ");Serial.println();
 }
 #endif
 
@@ -63,10 +70,23 @@ AsyncWebServer server(80);
 // Method for processing HTML templates
 String processor(const String& var);
 
+// Configure the pump button interrupt routine
+unsigned long press_length = 60; // When the button is pressed, leave the pump on for a minute
+unsigned long press_time = 0;
+bool pressed = false;
+
+void IRAM_ATTR ISR(){
+  pump_on = true;
+  press_time = millis();
+  pressed = true;
+}
+
 void setup() {
-  #ifdef DEBUG
+  pinMode(PUMP_BUTTON, INPUT_PULLUP); // Set the pump input button as a pulup input
+
+  attachInterrupt(PUMP_BUTTON, ISR, FALLING);
+
   Serial.begin(9600);
-  #endif
 
   Serial2.begin(9600); // Initialise Serial communication with the microbit
 
@@ -102,7 +122,8 @@ void setup() {
 
   // Serve request for page data
   server.on("/data", HTTP_GET, [](AsyncWebServerRequest *request){
-    char buf[64];
+    char buf[256];
+    memset(buf, 0, 256);
 
     // Convert all floats to strings
     char temp[6];
@@ -111,11 +132,11 @@ void setup() {
     char humidity[6];
     dtostrf(data.humidity, 3,1, humidity);
 
-    char soil[6];
-    dtostrf(data.soil_moist, 4,2, soil);
+    char wind[5];
+    dtostrf(data.wind_speed, 4, 2, wind);
 
+    sprintf(buf, "{\"temp\":%s, \"humidity\":%s, \"soil_moist\":%d, \"wind_speed\":%s, \"wind_dir\":\"%s\", \"pump_on\":%d}", temp, humidity, data.soil_moist, wind, data.wind_dir, pump_on);
 
-    sprintf(buf, "{\"temp\":%s, \"humidity\":%s, \"soil_moist\":%s, \"pump_on\":%d}", temp, humidity, soil, pump_on);
     request->send(200, "application/json", buf);
   });
 
@@ -134,7 +155,16 @@ void setup() {
   });
   
   server.on("/plant.svg", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, pump_on ? "/plant_water.svg" : "/plant.svg","image/svg+xml");
+    request->send(SPIFFS, "/plant.svg","image/svg+xml");
+  });
+
+  server.on("/plant_water.svg", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/plant_water.svg","image/svg+xml");
+  });
+
+  server.on("/wind.svg", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS,"/wind.svg"
+    ,"image/svg+xml");
   });
 
   // Serve JavaScript file
@@ -143,7 +173,6 @@ void setup() {
   });
 
   // Admin interface - Crudely password protected by ADMIN_PASS
-
   server.begin();
 }
 
@@ -152,11 +181,23 @@ void loop() {
     incoming();
   }
 
+  // if(millis()%1000 == 0){
+  //   pump_on = random(10) > 5;
+  //   digitalWrite(PUMP_PIN, pump_on);
+  // }
+
   // Control the pump
   if(!pump_on && data.soil_moist <= SOIL_DRY){
     pump_on = true;
-    digitalWrite(PUMP_PIN, pump_on);
   }
+
+  // If the button timeout has been reached, turn off pump
+  if(pressed && (millis() - press_time > press_length)){
+    pressed = false;
+    pump_on = false;
+  }
+
+  digitalWrite(PUMP_PIN, pump_on); // Set the pump output
 }
 
 /**
@@ -167,6 +208,8 @@ String processor(const String& var){
   if(var == "HUMIDITY")return String(data.humidity, 1);
   if(var == "SOIL")return String(data.soil_moist, 1);
   if(var == "PUMP")return String(pump_on ? "ON" : "OFF");
+  if(var == "WIND_SPEED")return String(data.wind_speed, 1);
+  if(var == "WIND_DIR")return String(data.wind_dir);
   return String();
 }
 
@@ -230,6 +273,33 @@ void processBuffer(){
   if(tok == NULL)return; // Could not read soil moisture
 
   data.soil_moist = atoi(tok); // Read soil moisture content
+
+  #ifdef DEBUG
+  Serial.println("Reading wind speed");
+  #endif
+  tok = strtok(NULL, ","); // Get the fourth token
+
+  if(tok == NULL)return; // Could not read wind speed
+
+  data.wind_speed = atoi(tok); // Read wind speed
+
+  #ifdef DEBUG
+  Serial.println("Reading wind direction");
+  #endif
+  tok = strtok(NULL, ","); // Get the fifth token
+
+  if(tok == NULL)return; // Could not read  wind direction
+
+  strcpy(data.wind_dir, tok); // Read wind direction
+
+  #ifdef DEBUG
+  Serial.println("Reading rainfall");
+  #endif
+  tok = strtok(NULL, ","); // Get the sixth token
+
+  if(tok == NULL)return; // Could not read wind speed
+
+  data.rain = atoi(tok); // Read rainfall
 
   #ifdef DEBUG
   printData(data);
