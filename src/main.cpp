@@ -15,7 +15,7 @@
 
 // #define DEBUG
 
-// Define the point at which the soil is defined as "dry"
+// Define the point at which the soil is defined as "dry". Any value below this will activate the pump
 // TODO: Make this editable via the frontend interface
 #define SOIL_DRY 600
 
@@ -71,7 +71,7 @@ AsyncWebServer server(80);
 String processor(const String& var);
 
 // Configure the pump button interrupt routine
-unsigned long press_length = 60; // When the button is pressed, leave the pump on for a minute
+unsigned long press_length = 60000; // When the button is pressed, leave the pump on for a minute
 unsigned long press_time = 0;
 bool pressed = false;
 
@@ -186,9 +186,14 @@ void loop() {
   //   digitalWrite(PUMP_PIN, pump_on);
   // }
 
-  // Control the pump
-  if(!pump_on && data.soil_moist <= SOIL_DRY){
-    pump_on = true;
+  // Control the pump, only if the pump button has not been activated
+  if(!pressed){
+    if(data.soil_moist <= SOIL_DRY){
+      pump_on = true;
+    }
+    else {
+      pump_on = false;
+    }
   }
 
   // If the button timeout has been reached, turn off pump
