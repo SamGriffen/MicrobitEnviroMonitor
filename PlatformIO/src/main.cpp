@@ -28,8 +28,11 @@ bool pump_on = false; // Pump state. True = on, false = off
 
 
 // Network credentials
-const char* ssid = "Rosa";
-const char* password = "denbigh05";
+// const char* ssid = "BV9800";
+// const char* password = "thisisatestpassword";
+
+const char* ssid = "BV9800";
+const char* password = "testpassword";
 
 // Struct for storing current reading data
 struct Data{
