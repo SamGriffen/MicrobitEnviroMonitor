@@ -13,14 +13,14 @@
 #include <ESPAsyncWebServer.h>
 #include <SPIFFS.h>
 
-// #define DEBUG
+#define DEBUG
 
 // Define the point at which the soil is defined as "dry". Any value below this will activate the pump
 // TODO: Make this editable via the frontend interface
 #define SOIL_DRY 600
 
 // Define pump output, and pump state flag
-#define PUMP_PIN 5
+#define PUMP_PIN 23
 bool pump_on = false; // Pump state. True = on, false = off
 
 
@@ -28,11 +28,9 @@ bool pump_on = false; // Pump state. True = on, false = off
 
 
 // Network credentials
-// const char* ssid = "BV9800";
-// const char* password = "thisisatestpassword";
 
-const char* ssid = "BV9800";
-const char* password = "testpassword";
+// const char* ssid = "BV9800";
+// const char* password = "testpassword";
 
 // Struct for storing current reading data
 struct Data{
@@ -90,6 +88,10 @@ void setup() {
   attachInterrupt(PUMP_BUTTON, ISR, FALLING);
 
   Serial.begin(9600);
+
+  #ifdef DEBUG
+  while(!Serial){}
+  #endif
 
   Serial2.begin(9600); // Initialise Serial communication with the microbit
 
@@ -175,6 +177,12 @@ void setup() {
     request->send(SPIFFS, "/main.js","text/javascript");
   });
 
+  server.on("/set_pump", HTTP_POST, [](AsyncWebServerRequest *request){
+    pump_on = request->getParam("pump_on", true)->value() == "true";
+    Serial.print("Pump: ");Serial.println(pump_on);
+    request->send(200, "text/plain", "OK");
+  });
+
   // Admin interface - Crudely password protected by ADMIN_PASS
   server.begin();
 }
@@ -182,21 +190,6 @@ void setup() {
 void loop() {
   if(Serial2.available() > 0){ // Handle incoming Serial
     incoming();
-  }
-
-  // if(millis()%1000 == 0){
-  //   pump_on = random(10) > 5;
-  //   digitalWrite(PUMP_PIN, pump_on);
-  // }
-
-  // Control the pump, only if the pump button has not been activated
-  if(!pressed){
-    if(data.soil_moist <= SOIL_DRY){
-      pump_on = true;
-    }
-    else {
-      pump_on = false;
-    }
   }
 
   // If the button timeout has been reached, turn off pump

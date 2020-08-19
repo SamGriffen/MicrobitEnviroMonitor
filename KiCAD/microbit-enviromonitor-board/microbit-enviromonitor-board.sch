@@ -260,10 +260,6 @@ F 3 "~" H 3150 3200 50  0001 C CNN
 	1    3150 3200
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	2600 3100 2950 3100
-Wire Wire Line
-	2600 3200 2950 3200
 $Comp
 L power:GND #PWR02
 U 1 1 5F10692A
@@ -294,4 +290,16 @@ Wire Wire Line
 	2800 3500 2800 3400
 Wire Wire Line
 	2800 3400 2950 3400
+Wire Wire Line
+	2950 3100 2650 3100
+Wire Wire Line
+	2650 3100 2650 3700
+Wire Wire Line
+	2650 3700 2600 3700
+Wire Wire Line
+	2950 3200 2700 3200
+Wire Wire Line
+	2700 3200 2700 3800
+Wire Wire Line
+	2700 3800 2600 3800
 $EndSCHEMATC
